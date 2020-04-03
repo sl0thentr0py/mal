@@ -1,4 +1,5 @@
 defmodule Printer do
+
   def pr_str(%AstNode{type: type, value: value}) do
     case type do
       :symbol -> value
@@ -8,4 +9,6 @@ defmodule Printer do
         "(" <> (Enum.map(value, &pr_str/1) |> Enum.join(" ")) <> ")"
     end
   end
+
+  def pr_str(value), do: value
 end
