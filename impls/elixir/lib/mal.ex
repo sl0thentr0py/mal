@@ -14,7 +14,9 @@ defmodule Mal do
       [] -> ast
       _ ->
         [fun | args] = eval_ast(ast, env)
-        apply(fun, args)
+        case fun do
+          _ -> apply(fun, args)
+        end
     end
   end
 
@@ -25,7 +27,7 @@ defmodule Mal do
 
     case type do
       :symbol ->
-        case Map.fetch(env, value) do
+        case Env.get(env, value) do
           {:ok, val} -> val
           :error -> throw({:error, "Undefined symbol"})
         end
@@ -43,12 +45,19 @@ defmodule Mal do
     {:error, message} -> IO.puts("Error: #{message}")
   end
 
-  def main do
+  def loop(env) do
     IO.gets("user> ")
-    |> rep(@repl_env)
+    |> rep(env)
     |> IO.puts
 
-    main
+    loop(env)
+  end
+
+  def main do
+    env = Env.start_link
+    Enum.each(@repl_env, fn {k, v} -> Env.set(env, k, v) end)
+
+    loop(env)
   end
 
 end
