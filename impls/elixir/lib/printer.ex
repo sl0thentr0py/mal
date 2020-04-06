@@ -10,5 +10,5 @@ defmodule Printer do
     end
   end
 
-  def pr_str(value), do: value
+  def pr_str(value), do: inspect(value)
 end
