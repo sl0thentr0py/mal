@@ -1,7 +1,7 @@
 defmodule Env do
   use Agent
 
-  def start_link(outer: nil) do
+  def start_link(outer \\ nil) do
     Agent.start_link(fn -> %{outer: outer, env: %{}} end)
   end
 
@@ -26,4 +26,6 @@ defmodule Env do
       env -> Map.fetch(env, key)
     end
   end
+
+  def stop(agent), do: Agent.stop(agent)
 end
