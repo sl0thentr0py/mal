@@ -2,45 +2,42 @@ defmodule Mal do
 
   def read(line), do: Reader.read_str(line)
 
+  def eval(%AstNode{type: :list, value: []} = ast, env), do: ast
+
   def eval(%AstNode{type: :list, value: value} = ast, env) do
-    case value do
-      [] -> ast
-      [%AstNode{type: :symbol, value: first} | tail] ->
-        case first do
-          "def!" ->
-            set_bindings(tail, env)
-          "let*" ->
-            [%AstNode{type: :list, value: bindings}, expr] = tail
-            inner = Env.start_link(env)
-            set_bindings(bindings, inner)
-            eval(expr, inner)
-          "do" ->
-            eval_ast(%AstNode{type: :list, value: tail}, env)
-            |> List.last
-          "if" ->
-            [condition, t_exp | f_exp] = tail
-            case eval(condition, env) do
-              v when v in [false, nil] ->
-                case f_exp do
-                  [] -> nil
-                  [exp] -> eval(exp, env)
-                end
-              _ -> eval(t_exp, env)
+    [%AstNode{type: type, value: first} | tail] = value
+
+    case {type, first} do
+      {:symbol, "def!"} ->
+        set_bindings(tail, env)
+      {:symbol, "let*"} ->
+        [%AstNode{type: :list, value: bindings}, expr] = tail
+        inner = Env.start_link(env)
+        set_bindings(bindings, inner)
+        eval(expr, inner)
+      {:symbol, "do"} ->
+        eval_ast(%AstNode{type: :list, value: tail}, env)
+        |> List.last
+      {:symbol, "if"} ->
+        [condition, t_exp | f_exp] = tail
+        case eval(condition, env) do
+          v when v in [false, nil] ->
+            case f_exp do
+              [] -> nil
+              [exp] -> eval(exp, env)
             end
-          "fn*" ->
-            [argc, body] = tail
-            fn argv ->
-              argc = Enum.map(argc.value, fn %AstNode{type: :symbol, value: v} -> v end)
-              stack = Env.start_link(env, argc, argv)
-              eval(body, stack)
-            end
-          _ ->
-            [fun | args] = eval_ast(ast, env)
-            apply(fun, [args])
+          _ -> eval(t_exp, env)
         end
-        _ ->
-          [fun | args] = eval_ast(ast, env)
-          apply(fun, [args])
+      {:symbol, "fn*"} ->
+        [argc, body] = tail
+        fn argv ->
+          argc = Enum.map(argc.value, fn %AstNode{type: :symbol, value: v} -> v end)
+          stack = Env.start_link(env, argc, argv)
+          eval(body, stack)
+        end
+      _ ->
+        [fun | args] = eval_ast(ast, env)
+        apply(fun, [args])
     end
   end
 
