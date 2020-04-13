@@ -1,6 +1,6 @@
 defmodule Printer do
 
-  def pr_str(%AstNode{type: type, value: value}) do
+  def pr_str(%Ast{type: type, value: value}) do
     case type do
       :symbol -> value
       :atom -> Atom.to_string(value)
@@ -10,5 +10,5 @@ defmodule Printer do
     end
   end
 
-  def pr_str(value), do: inspect(value)
+  def pr_str(value, _readable \\ false), do: inspect(value)
 end

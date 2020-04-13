@@ -15,7 +15,7 @@ defmodule Reader do
 
   def read_form(["(" | tokens]) do
     {list, rest} = read_list(tokens, [])
-    {%AstNode{type: :list, value: list}, rest}
+    {%Ast{type: :list, value: list}, rest}
   end
 
   def read_form([atom | rest]), do: { read_atom(atom), rest }
@@ -28,27 +28,27 @@ defmodule Reader do
   end
 
   def read_atom(":" <> rest) do
-    %AstNode{ type: :atom, value: String.to_atom(rest) }
+    %Ast{ type: :atom, value: String.to_atom(rest) }
   end
 
   def read_atom("nil") do
-    %AstNode{ type: :nil, value: nil }
+    %Ast{ type: :nil, value: nil }
   end
 
   def read_atom("true") do
-    %AstNode{ type: :boolean, value: true }
+    %Ast{ type: :boolean, value: true }
   end
 
   def read_atom("false") do
-    %AstNode{ type: :boolean, value: false }
+    %Ast{ type: :boolean, value: false }
   end
 
   def read_atom(token) do
     cond do
       integer?(token) ->
-        %AstNode{ type: :integer, value: Integer.parse(token) |> elem(0) }
+        %Ast{ type: :integer, value: Integer.parse(token) |> elem(0) }
       true ->
-        %AstNode{ type: :symbol, value: token }
+        %Ast{ type: :symbol, value: token }
     end
   end
 

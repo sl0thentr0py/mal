@@ -2,21 +2,21 @@ defmodule Mal do
 
   def read(line), do: Reader.read_str(line)
 
-  def eval(%AstNode{type: :list, value: []} = ast, env), do: ast
+  def eval(%Ast{type: :list, value: []} = ast, env), do: ast
 
-  def eval(%AstNode{type: :list, value: value} = ast, env) do
-    [%AstNode{type: type, value: first} | tail] = value
+  def eval(%Ast{type: :list, value: value} = ast, env) do
+    [%Ast{type: type, value: first} | tail] = value
 
     case {type, first} do
       {:symbol, "def!"} ->
         set_bindings(tail, env)
       {:symbol, "let*"} ->
-        [%AstNode{type: :list, value: bindings}, expr] = tail
+        [%Ast{type: :list, value: bindings}, expr] = tail
         inner = Env.start_link(env)
         set_bindings(bindings, inner)
         eval(expr, inner)
       {:symbol, "do"} ->
-        eval_ast(%AstNode{type: :list, value: tail}, env)
+        eval_ast(%Ast{type: :list, value: tail}, env)
         |> List.last
       {:symbol, "if"} ->
         [condition, t_exp | f_exp] = tail
@@ -31,7 +31,7 @@ defmodule Mal do
       {:symbol, "fn*"} ->
         [argc, body] = tail
         fn argv ->
-          argc = Enum.map(argc.value, fn %AstNode{type: :symbol, value: v} -> v end)
+          argc = Enum.map(argc.value, fn %Ast{type: :symbol, value: v} -> v end)
           stack = Env.start_link(env, argc, argv)
           eval(body, stack)
         end
@@ -45,7 +45,7 @@ defmodule Mal do
 
   def set_bindings([], _env), do: nil
 
-  def set_bindings([%AstNode{type: :symbol, value: key}, val | tail], env) do
+  def set_bindings([%Ast{type: :symbol, value: key}, val | tail], env) do
     evald = eval(val, env)
     Env.set(env, key, evald)
     set_bindings(tail, env)
@@ -53,7 +53,7 @@ defmodule Mal do
   end
 
   def eval_ast(ast, env) do
-    %AstNode{type: type, value: value} = ast
+    %Ast{type: type, value: value} = ast
 
     case type do
       :symbol ->

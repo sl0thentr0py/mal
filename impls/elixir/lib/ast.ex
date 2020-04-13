@@ -1,3 +1,3 @@
-defmodule AstNode do
+defmodule Ast do
   defstruct [:type, :value]
 end
