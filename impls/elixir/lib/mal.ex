@@ -1,12 +1,5 @@
 defmodule Mal do
 
-  @repl_env %{
-    "+" => &+/2,
-    "-" => &-/2,
-    "*" => &*/2,
-    "/" => &div/2
-  }
-
   def read(line), do: Reader.read_str(line)
 
   def eval(%AstNode{type: :list, value: value} = ast, env) do
@@ -43,7 +36,7 @@ defmodule Mal do
             end
           _ ->
             [fun | args] = eval_ast(ast, env)
-            apply(fun, args)
+            apply(fun, [args])
         end
         _ ->
           [fun | args] = eval_ast(ast, env)
@@ -95,7 +88,7 @@ defmodule Mal do
 
   def main do
     env = Env.start_link
-    Enum.each(@repl_env, fn {k, v} -> Env.set(env, k, v) end)
+    Enum.each(Core.namespace, fn {k, v} -> Env.set(env, k, v) end)
 
     loop(env)
   end
