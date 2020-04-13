@@ -1,8 +1,13 @@
 defmodule Env do
   use Agent
 
-  def start_link(outer \\ nil) do
-    Agent.start_link(fn -> %{outer: outer, env: %{}} end)
+  def start_link(outer \\ nil, binds \\ [], exprs \\ []) do
+    agent = Agent.start_link(fn -> %{outer: outer, env: %{}} end)
+
+    Enum.zip(binds, exprs)
+    |> Enum.each(fn {k, v} -> set(agent, k, v) end)
+
+    agent
   end
 
   def set(agent, key, val) do
