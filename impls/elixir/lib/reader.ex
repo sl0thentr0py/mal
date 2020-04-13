@@ -28,24 +28,27 @@ defmodule Reader do
   end
 
   def read_atom(":" <> rest) do
-    %AstNode{
-      type: :atom,
-      value: String.to_atom(rest)
-    }
+    %AstNode{ type: :atom, value: String.to_atom(rest) }
+  end
+
+  def read_atom("nil") do
+    %AstNode{ type: :nil, value: nil }
+  end
+
+  def read_atom("true") do
+    %AstNode{ type: :boolean, value: true }
+  end
+
+  def read_atom("false") do
+    %AstNode{ type: :boolean, value: false }
   end
 
   def read_atom(token) do
     cond do
       integer?(token) ->
-        %AstNode{
-          type: :integer,
-          value: Integer.parse(token) |> elem(0)
-        }
+        %AstNode{ type: :integer, value: Integer.parse(token) |> elem(0) }
       true ->
-        %AstNode{
-          type: :symbol,
-          value: token
-        }
+        %AstNode{ type: :symbol, value: token }
     end
   end
 
