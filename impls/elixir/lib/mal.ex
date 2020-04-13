@@ -12,20 +12,42 @@ defmodule Mal do
   def eval(%AstNode{type: :list, value: value} = ast, env) do
     case value do
       [] -> ast
-      _ ->
-        [%AstNode{type: :symbol, value: first} | tail] = value
+      [%AstNode{type: :symbol, value: first} | tail] ->
         case first do
           "def!" ->
             set_bindings(tail, env)
           "let*" ->
             [%AstNode{type: :list, value: bindings}, expr] = tail
-            {:ok, inner} = Env.start_link(env)
+            inner = Env.start_link(env)
             set_bindings(bindings, inner)
             eval(expr, inner)
+          "do" ->
+            eval_ast(%AstNode{type: :list, value: tail}, env)
+            |> List.last
+          "if" ->
+            [condition, t_exp | f_exp] = tail
+            case eval(condition, env) do
+              v when v in [false, nil] ->
+                case f_exp do
+                  [] -> nil
+                  [exp] -> eval(exp, env)
+                end
+              _ -> eval(t_exp, env)
+            end
+          "fn*" ->
+            [argc, body] = tail
+            fn argv ->
+              argc = Enum.map(argc.value, fn %AstNode{type: :symbol, value: v} -> v end)
+              stack = Env.start_link(env, argc, argv)
+              eval(body, stack)
+            end
           _ ->
             [fun | args] = eval_ast(ast, env)
             apply(fun, args)
         end
+        _ ->
+          [fun | args] = eval_ast(ast, env)
+          apply(fun, [args])
     end
   end
 
@@ -72,7 +94,7 @@ defmodule Mal do
   end
 
   def main do
-    {:ok, env} = Env.start_link
+    env = Env.start_link
     Enum.each(@repl_env, fn {k, v} -> Env.set(env, k, v) end)
 
     loop(env)
