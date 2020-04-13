@@ -10,5 +10,11 @@ defmodule Printer do
     end
   end
 
-  def pr_str(value, _readable \\ false), do: inspect(value)
+  def pr_str(value) when is_list(value) do
+    "(" <> (Enum.map(value, &pr_str/1) |> Enum.join(" ")) <> ")"
+  end
+
+  def pr_str(value) when is_integer(value), do: Integer.to_string(value)
+  def pr_str(value) when is_function(value), do: "#<function>"
+  def pr_str(value), do: inspect(value)
 end
