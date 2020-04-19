@@ -8,12 +8,12 @@ defmodule Mal.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps(),
-     default_task: "step4_if_fn_do",
+     default_task: "step5_tco",
      escript: escript()]
   end
 
   def escript do
-    [main_module: Mix.Tasks.Step4IfFnDo]
+    [main_module: Mix.Tasks.Step5Tco]
   end
 
   # Configuration for the OTP application

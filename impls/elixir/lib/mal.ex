@@ -16,8 +16,9 @@ defmodule Mal do
         set_bindings(bindings, inner)
         eval(expr, inner)
       {:symbol, "do"} ->
-        eval_ast(%Ast{type: :list, value: tail}, env)
-        |> List.last
+        [last | rev] = Enum.reverse(tail)
+        eval_ast(%Ast{type: :list, value: Enum.reverse(rev)}, env)
+        eval(last, env)
       {:symbol, "if"} ->
         [condition, t_exp | f_exp] = tail
         case eval(condition, env) do
